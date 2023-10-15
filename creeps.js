@@ -1,8 +1,10 @@
-// const nurse = require('./roles/nurse')
-// const engineer = require('./roles/engineer')
-// const upgrader = require('./roles/upgrader')
-
-const richestSourceInRoom = (creep) => {
+/* richestResource
+desc
+    returns resource in room with the most energy
+args
+    creep - required
+*/
+const richestResource = (creep) => {
     sources = creep.room.find(FIND_SOURCES)
 
     richestSource = sources[0]
@@ -15,7 +17,7 @@ const richestSourceInRoom = (creep) => {
     return richestSource
 }
 
-/* gatherEnergy
+/* gatherResources
 desc
     moves creep to resource and gathers energy
 args
@@ -23,9 +25,9 @@ args
     resource - optional
         defaults to nearest active resource if not provided
 */
-const gatherEnergy = (creep, resource) => {
+const gatherResources = (creep, resource) => {
     if (creep.memory.resourceID == null) {
-        creep.memory.resourceID = (resource != undefined) ? resource.id : richestSourceInRoom(creep).id;
+        creep.memory.resourceID = (resource != undefined) ? resource.id : richestResource(creep).id;
     }
     if (creep.harvest(Game.getObjectById(creep.memory.resourceID)) == ERR_NOT_IN_RANGE) {
         creep.moveTo(
@@ -35,61 +37,75 @@ const gatherEnergy = (creep, resource) => {
     }
 }
 
-getNurseDepositTarget = (creep) => {
-    var targets = creep.room.find(FIND_MY_STRUCTURES, {
-        filter: (structure) => {
-            return structure.structureType === STRUCTURE_EXTENSION || structure.structureType === STRUCTURE_SPAWN
-        }
-    });
-
-    let target = targets[0]
-    targets.forEach((item) => {
-        console.log(item.store.getFreeCapacity(RESOURCE_ENERGY), item.store.getCapacity(RESOURCE_ENERGY))
-        if (item.store.getFreeCapacity(RESOURCE_ENERGY) > target.store.getFreeCapacity(RESOURCE_ENERGY)) {
-            target = item
-        }
-    })
-
-    return target
-}
-
-const nurse = {
-    depositEnergy: (creep) => {
-        creep.memory.resourceID = null
-
-        var targets = creep.room.find(FIND_MY_STRUCTURES, {
-            filter: (structure) => {
-                return structure.structureType === STRUCTURE_EXTENSION || structure.structureType === STRUCTURE_SPAWN
-            }
-        });
-
-        let target = targets[0]
-        targets.forEach((item) => {
-            if (item.store.getFreeCapacity(RESOURCE_ENERGY) > target.store.getFreeCapacity(RESOURCE_ENERGY)) {
-                target = item
-            }
-        })
-
-        if (creep.transfer(target, RESOURCE_ENERGY) == -9) {
-            creep.moveTo(target, { visualizePathStyle: { stroke: '#ff0000' } });
-        }
-
-    }
-}
-
-
+// directives and nested role logic
 const creepManager = {
-    useResources: {},
-    gatherResources: {},
+    gatherResources: {
+        nurse: (creep) => {
+            gatherResources(creep)
+        },
+        engineer: (creep) => {
+            gatherResources(creep)
+        },
+        upgrader: (creep) => {
+            gatherResources(creep)
+        },
+    },
+    useResources: {
+        nurse: (creep) => {
+            creep.memory.resourceID = null
+
+            var targets = creep.room.find(FIND_MY_STRUCTURES, {
+                filter: (structure) => {
+                    return structure.structureType === STRUCTURE_EXTENSION || structure.structureType === STRUCTURE_SPAWN
+                }
+            });
+
+            let target = targets[0]
+            targets.forEach((item) => {
+                if (item.store.getFreeCapacity(RESOURCE_ENERGY) > target.store.getFreeCapacity(RESOURCE_ENERGY)) {
+                    target = item
+                }
+            })
+
+            if (creep.transfer(target, RESOURCE_ENERGY) == -9) {
+                creep.moveTo(target, { visualizePathStyle: { stroke: '#ff0000' } });
+            }
+
+        },
+        engineer: (creep) => {
+            creep.memory.resourceID = null
+
+            var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
+            if (targets.length) {
+                if (creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(targets[0], { visualizePathStyle: { stroke: '#00FF00' } });
+                }
+            }
+
+        },
+        upgrader: (creep) => {
+            creep.memory.resourceID = null
+
+            if (creep.room.controller) {
+                creep.upgradeController(creep.room.controller);
+                creep.moveTo(creep.room.controller, { visualizePathStyle: { stroke: '#ffffff' } });
+            }
+
+        },
+
+    },
 }
+
+// defining directives
+directives = [
+    'gatherResources',
+    'useResources'
+]
 
 module.exports = {
 
     setBehaviorByRole: (creep) => {
-        directives = [
-            'gatherResources',
-            'useResources'
-        ]
+
         // setting directive
         if (creep.store.getFreeCapacity() == creep.store.getCapacity()) {
             creep.memory.directive = 'gatherResources'
@@ -100,36 +116,12 @@ module.exports = {
         }
 
         // reading directive
-        // creepManager[creep.memory.directive][creep.memory.role](creep)
-
-        if (creep.memory.directive == 'gatherResources') {
-            gatherEnergy(creep)
-        } else if (creep.memory.directive == 'useResources') {
-            // selecting behavior based on role
-            if (creep.memory.role == 'nurse' || creep.memory.role == 'harvester') {
-                nurse.depositEnergy(creep)
-
-            } else if (creep.memory.role == 'engineer' || creep.memory.role == 'builder') {
-                var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
-                if (targets.length) {
-                    if (creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(targets[0], { visualizePathStyle: { stroke: '#00FF00' } });
-                    }
-                }
-
-            } else if (creep.memory.role == 'upgrader') {
-                if (creep.room.controller) {
-                    creep.upgradeController(creep.room.controller);
-                    creep.moveTo(creep.room.controller, { visualizePathStyle: { stroke: '#ffffff' } });
-                }
-
-            } else {
-                console.log(`${creep} has unrecognized role of ${role}!`)
-
-            }
-
-        } else {
-            creep.memory.directive = 'gatherResources'
+        try {
+            creepManager[creep.memory.directive][creep.memory.role](creep)
+        } catch (err) {
+            console.log(`creepManager[${creep.memory.directive}][${creep.memory.role}](${creep}) failed`)
+            console.log(err)
         }
+
     }
 }

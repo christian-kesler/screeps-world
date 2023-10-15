@@ -27,6 +27,3 @@ module.exports.loop = function () {
     console.log('^^^^^^^^')
 
 }
-// TODO modify engineer behavior to also conduct repairs if needed
-// TODO modify nurse to also supply extensions if spawn is full
-// TODO modify spawn logic to make better screeps if extensions exist
