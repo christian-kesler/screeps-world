@@ -1,6 +1,6 @@
 const strategies = require('./strategies')
 const { conductCensus, generateDirective } = require('./analytics')
-const { spawnCreepWithRole } = require('./spawns')
+const { spawnCreepWithRole, maintainCreeps } = require('./spawns')
 const { setBehaviorByRole } = require('./creeps')
 
 module.exports.loop = function () {
@@ -17,6 +17,9 @@ module.exports.loop = function () {
             spawnCreepWithRole(directive.role)
         })
     }
+
+    maintainCreeps()
+
     console.log(`Census: ${JSON.stringify(census)}`)
     console.log(`Directive: ${JSON.stringify(directive)}`)
 

@@ -40,6 +40,9 @@ const gatherResources = (creep, resource) => {
 // directives and nested role logic
 const creepManager = {
     gatherResources: {
+        starter: (creep) => {
+            gatherResources(creep)
+        },
         nurse: (creep) => {
             gatherResources(creep)
         },
@@ -51,21 +54,108 @@ const creepManager = {
         },
     },
     useResources: {
-        nurse: (creep) => {
+        starter: (creep) => {
             creep.memory.resourceID = null
 
-            var targets = creep.room.find(FIND_MY_STRUCTURES, {
+            // get extensions in room
+            var extensions = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => {
-                    return structure.structureType === STRUCTURE_EXTENSION || structure.structureType === STRUCTURE_SPAWN
+                    return structure.structureType === STRUCTURE_EXTENSION
                 }
             });
 
-            let target = targets[0]
-            targets.forEach((item) => {
-                if (item.store.getFreeCapacity(RESOURCE_ENERGY) > target.store.getFreeCapacity(RESOURCE_ENERGY)) {
-                    target = item
+            // get spawns in room
+            var spawns = creep.room.find(FIND_MY_STRUCTURES, {
+                filter: (structure) => {
+                    return structure.structureType === STRUCTURE_SPAWN
                 }
-            })
+            });
+
+            // find emptiest extension
+            let emptiestExtension = extensions[0]
+            for (let i = 0; i < extensions.length; i++) {
+                if (extensions[i].store.getFreeCapacity(RESOURCE_ENERGY) > emptiestExtension.store.getFreeCapacity(RESOURCE_ENERGY)) {
+                    emptiestExtension = extensions[i]
+                }
+            }
+
+            let target = emptiestExtension
+            if (emptiestExtension.store.getFreeCapacity(RESOURCE_ENERGY) != 0) {
+                console.log("if extensions have room, deposit resource energy")
+                let target = emptiestExtension
+
+                if (creep.transfer(target, RESOURCE_ENERGY) == -9) {
+                    creep.moveTo(target, { visualizePathStyle: { stroke: '#ff0000' } });
+                }
+
+            } else {
+                console.log("else, find emptiest spawn")
+                let target = spawns[0]
+                for (let i = 0; i < spawns.length; i++) {
+                    if (spawns[i].store.getFreeCapacity(RESOURCE_ENERGY) > target.store.getFreeCapacity(RESOURCE_ENERGY)) {
+                        target = spawns[i]
+                    }
+                }
+
+                if (creep.transfer(target, RESOURCE_ENERGY) == -9) {
+                    creep.moveTo(target, { visualizePathStyle: { stroke: '#ff0000' } });
+                }
+
+            }
+
+            if (creep.transfer(target, RESOURCE_ENERGY) == -9) {
+                creep.moveTo(target, { visualizePathStyle: { stroke: '#ff0000' } });
+            }
+
+        },
+        nurse: (creep) => {
+            creep.memory.resourceID = null
+
+            // get extensions in room
+            var extensions = creep.room.find(FIND_MY_STRUCTURES, {
+                filter: (structure) => {
+                    return structure.structureType === STRUCTURE_EXTENSION
+                }
+            });
+
+            // get spawns in room
+            var spawns = creep.room.find(FIND_MY_STRUCTURES, {
+                filter: (structure) => {
+                    return structure.structureType === STRUCTURE_SPAWN
+                }
+            });
+
+            // find emptiest extension
+            let emptiestExtension = extensions[0]
+            for (let i = 0; i < extensions.length; i++) {
+                if (extensions[i].store.getFreeCapacity(RESOURCE_ENERGY) > emptiestExtension.store.getFreeCapacity(RESOURCE_ENERGY)) {
+                    emptiestExtension = extensions[i]
+                }
+            }
+
+            let target = emptiestExtension
+            if (emptiestExtension.store.getFreeCapacity(RESOURCE_ENERGY) != 0) {
+                console.log("if extensions have room, deposit resource energy")
+                let target = emptiestExtension
+
+                if (creep.transfer(target, RESOURCE_ENERGY) == -9) {
+                    creep.moveTo(target, { visualizePathStyle: { stroke: '#ff0000' } });
+                }
+
+            } else {
+                console.log("else, find emptiest spawn")
+                let target = spawns[0]
+                for (let i = 0; i < spawns.length; i++) {
+                    if (spawns[i].store.getFreeCapacity(RESOURCE_ENERGY) > target.store.getFreeCapacity(RESOURCE_ENERGY)) {
+                        target = spawns[i]
+                    }
+                }
+
+                if (creep.transfer(target, RESOURCE_ENERGY) == -9) {
+                    creep.moveTo(target, { visualizePathStyle: { stroke: '#ff0000' } });
+                }
+
+            }
 
             if (creep.transfer(target, RESOURCE_ENERGY) == -9) {
                 creep.moveTo(target, { visualizePathStyle: { stroke: '#ff0000' } });
@@ -92,7 +182,6 @@ const creepManager = {
             }
 
         },
-
     },
 }
 
@@ -107,7 +196,9 @@ module.exports = {
     setBehaviorByRole: (creep) => {
 
         // setting directive
-        if (creep.store.getFreeCapacity() == creep.store.getCapacity()) {
+        if (creep.ticksToLive < 250) {
+            creep.memory.directive = 'renew'
+        } else if (creep.store.getFreeCapacity() == creep.store.getCapacity()) {
             creep.memory.directive = 'gatherResources'
         } else if (creep.store.getFreeCapacity() == 0) {
             creep.memory.directive = 'useResources'

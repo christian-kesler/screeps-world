@@ -20,7 +20,7 @@ const generateStrategyBasedOnRoomCapacity = (capacity) => {
 
         return body
     } else {
-        console.log("UNUSUAL ROOM CAPACITY OF " + capacity + " RECEVIED")
+        console.log("UNUSUAL ROOM CAPACITY OF " + capacity + " RECEIVED")
         return null
     }
 }
@@ -33,23 +33,32 @@ module.exports = {
         // making sure there is at least one creep
         if (Object.keys(Game.creeps).length == 0) {
             spawn.spawnCreep(
-                [WORK, WORK, MOVE, CARRY],
-                `STARTER_${Game.spawns[Object.keys(Game.spawns)[0]].name}_${Game.time}`,
-                { memory: { role: 'nurse' } }
+                [WORK, MOVE, MOVE, CARRY],
+                `starter_${Game.spawns[Object.keys(Game.spawns)[0]].name}_${Game.time}`,
+                { memory: { role: 'starter' } }
             )
         }
 
-        const extensions = spawn.room.find(FIND_MY_STRUCTURES, { filter: (structure) => structure.structureType === STRUCTURE_EXTENSION || structure.structureType === STRUCTURE_SPAWN });
+        const extensions = spawn.room.find(FIND_MY_STRUCTURES, { filter: (structure) => structure.structureType === STRUCTURE_EXTENSION });
         const extensionCapacity = extensions.reduce((capacity, extension) => capacity + extension.store.getCapacity(RESOURCE_ENERGY), 0);
         const totalCapacity = spawn.store.getCapacity(RESOURCE_ENERGY) + extensionCapacity;
 
-        console.log(1100, generateStrategyBasedOnRoomCapacity(1100))
         spawn.spawnCreep(
             generateStrategyBasedOnRoomCapacity(totalCapacity),
             `${role}_${spawn.name}_${Game.time}`,
             { memory: { role: role } }
-        );
+        )
+    },
+
+    maintainCreeps: () => {
+        let spawns = Game.spawns
+        for (var spawnName in spawns) {
+            let creeps = spawns[spawnName].room.creeps
+            for (var creepName in creeps) {
+                if (creeps[creepName].memory.directive == 'renew') {
+                    spawns[spawnName].renewCreep(creeps[creepName])
+                }
+            }
+        }
     }
 }
-
-// 1100 move,work,work,carry,move,work,work,carry,move,work,work,carry,move,work,work,carry,move,work,work,carry,work
