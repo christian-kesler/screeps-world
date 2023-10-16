@@ -11,9 +11,7 @@ git remote set-url --add --push origin git@gitlab.com:christian.kesler/screeps-w
 
 ## TODO
 
-- Modify engineer behavior to also conduct repairs if needed
-    - priority one, repairs on structures at 75% decay or greater
-    - priority two, new construction
-    - priority three, repairs on most decayed structures
-- Modify spawn logic to make better screeps if extensions exist
-    - Equal parts work move carry?
+- Create creep loop
+    - Update creeps to target richest energy source in room
+- Create spawn loop
+    - Update spawn to create room control upgraders 
