@@ -8,10 +8,10 @@ module.exports.loop = function () {
     console.log('vvvvvvvv')
 
     census = conductCensus(Game.creeps)
-    directive = generateDirective(strategies.rcl3, census)
+    directive = generateDirective(strategies.base, census)
 
     if (directive.length == 0) {
-        spawnCreepWithRole(strategies.rcl1.default_new_role)
+        spawnCreepWithRole(strategies.base.default_new_role)
     } else {
         directive.forEach((directive, index) => {
             spawnCreepWithRole(directive.role)
