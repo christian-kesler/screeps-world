@@ -11,7 +11,3 @@ git remote set-url --add --push origin git@gitlab.com:christian.kesler/screeps-w
 
 ## TODO
 
-- Create creep loop
-    - Update creeps to target richest energy source in room
-- Create spawn loop
-    - Update spawn to create room control upgraders 
