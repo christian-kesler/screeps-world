@@ -10,14 +10,14 @@ module.exports = {
                     count: 1
                 }
             } else {
-                census[Game.creeps[name].memory.role] += 1
+                census[Game.creeps[name].memory.role].count += 1
             }
             census.total += 1
         }
 
         for (var role in census) {
             if (role != 'total') {
-                census[role.density] = census[role].count / census.total
+                census[role].density = census[role].count / census.total
             }
         }
 
