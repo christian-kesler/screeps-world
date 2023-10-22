@@ -8,6 +8,31 @@ const moveToOpt = {
     }
 }
 
+const creepBehaviorObject = {
+    nurse: (creep) => {
+        if (creep.memory.directive == 'transferResources') {
+            if (creep.transfer(Game.spawns['Spawn1'], RESOURCE_ENERGY) == -9) {
+                creep.moveTo(Game.spawns['Spawn1'], moveToOpt)
+            }
+        }
+    },
+    engineer: (creep) => {
+        if (creep.memory.directive == 'transferResources') {
+            let site = Game.constructionSites[Object.keys(Game.constructionSites)[0]]
+            if (creep.build(site) == -9) {
+                creep.moveTo(site, moveToOpt)
+            }
+        }
+    },
+    upgrader: (creep) => {
+        if (creep.memory.directive == 'transferResources') {
+            if (creep.upgradeController(creep.room.controller) == -9) {
+                creep.moveTo(creep.room.controller, moveToOpt)
+            }
+        }
+    },
+}
+
 module.exports = {
     creepLoop: () => {
 
@@ -16,24 +41,35 @@ module.exports = {
             let creep = Game.creeps[name]
             let sources = creep.room.find(FIND_SOURCES_ACTIVE)
 
-            if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
-                creep.memory.directive = 'harvestResources'
-            } else if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
-                creep.memory.directive = 'transferResources'
+            richestEnergySource = sources[0]
+            for (let i = 0; i < sources.length; i++) {
+                if (sources[i].energy > richestEnergySource.energy) {
+                    richestEnergySource = sources[i]
+                }
             }
 
-            if (creep.memory.directive == 'transferResources') {
-                if (creep.transfer(Game.spawns['spawn1'], RESOURCE_ENERGY) == -9) {
-                    creep.moveTo(Game.spawns['spawn1'], moveToOpt)
+            try {
+                if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+                    creep.memory.directive = 'harvestResources'
+                    creep.memory.target = richestEnergySource.id
+                } else if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                    creep.memory.directive = 'transferResources'
                 }
-            } else if (creep.memory.directive == 'harvestResources') {
-                if (creep.harvest(sources[0]) == -9) {
-                    creep.moveTo(sources[0], moveToOpt)
+
+                if (creep.memory.directive == 'harvestResources') {
+                    if (creep.harvest(Game.getObjectById(creep.memory.target)) == -9) {
+                        creep.moveTo(Game.getObjectById(creep.memory.target), moveToOpt)
+                    }
                 }
-            } else {
-                creep.memory.directive = 'transferResources'
+
+                if (creep.memory.directive != 'harvestResources' && creep.memory.directive != 'transferResources') {
+                    creep.memory.directive = 'transferResources'
+                }
+
+                creepBehaviorObject[creep.memory.role](creep)
+            } catch (err) {
+                console.log(err.message)
             }
         }
-
     }
 }
