@@ -18,9 +18,33 @@ const creepBehaviorObject = {
     },
     engineer: (creep) => {
         if (creep.memory.directive == 'transferResources') {
-            let site = Game.constructionSites[Object.keys(Game.constructionSites)[0]]
-            if (creep.build(site) == -9) {
-                creep.moveTo(site, moveToOpt)
+            if (creep.memory.transferTargetId == null) {
+                roads = creep.room.find(FIND_STRUCTURES, {
+                    filter: { structureType: STRUCTURE_ROAD }
+                })
+
+                for (var name in roads) {
+                    if (roads[name].hits <= 2000) {
+                        creep.memory.transferTargetId = roads[name].id
+                    }
+                }
+
+                if (creep.memory.transferTargetId == null) {
+                    creep.memory.transferTargetId = Game.constructionSites[Object.keys(Game.constructionSites)[0]].id
+                }
+
+            } else {
+                if (Game.getObjectById(creep.memory.transferTargetId).hits == 5000) {
+                    creep.memory.transferTargetId = null
+                }
+                if (
+                    creep.build(Game.getObjectById(creep.memory.transferTargetId)) == -9
+                    ||
+                    creep.repair(Game.getObjectById(creep.memory.transferTargetId)) == -9
+                ) {
+                    console.log("attempting move")
+                    creep.moveTo(Game.getObjectById(creep.memory.transferTargetId), moveToOpt)
+                }
             }
         }
     },
@@ -51,14 +75,14 @@ module.exports = {
             try {
                 if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
                     creep.memory.directive = 'harvestResources'
-                    creep.memory.target = richestEnergySource.id
+                    creep.memory.harvestTargetId = richestEnergySource.id
                 } else if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                     creep.memory.directive = 'transferResources'
                 }
 
                 if (creep.memory.directive == 'harvestResources') {
-                    if (creep.harvest(Game.getObjectById(creep.memory.target)) == -9) {
-                        creep.moveTo(Game.getObjectById(creep.memory.target), moveToOpt)
+                    if (creep.harvest(Game.getObjectById(creep.memory.harvestTargetId)) == -9) {
+                        creep.moveTo(Game.getObjectById(creep.memory.harvestTargetId), moveToOpt)
                     }
                 }
 
