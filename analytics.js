@@ -1,38 +1,51 @@
 module.exports = {
-    conductCensus: (creeps) => {
+    creepCensus: (creeps) => {
         census = {
-            "total": 0
+            total: 0
         }
-        for (var name in Game.creeps) {
-            creep = Game.creeps[name]
 
-            if (census[creep.memory.role] == undefined) {
-                census[creep.memory.role] = 1
-                census['total'] = census['total'] + 1
+        for (var name in Game.creeps) {
+            if (census[Game.creeps[name].memory.role] == undefined) {
+                census[Game.creeps[name].memory.role] = {
+                    count: 1
+                }
             } else {
-                census[creep.memory.role] = census[creep.memory.role] + 1
-                census['total'] = census['total'] + 1
+                census[Game.creeps[name].memory.role].count += 1
+            }
+            census.total += 1
+        }
+
+        for (var role in census) {
+            if (role != 'total') {
+                census[role].density = census[role].count / census.total
             }
         }
+
         return census
     },
 
-    generateDirective: (strategy, census) => {
+    generateSpawnDirective: (strategy, census) => {
         directive = []
 
-        for (role in strategy.role_ratios) {
-            if (census[role] == null) census[role] = 0
-            current_ratio = census[role] / census['total']
-            desired_ratio = strategy.role_ratios[role]
+        if (census.total == 0) {
+            directive.push({
+                "action": "spawn_creep",
+                "role": strategy.default_role
+            })
+            return directive
+        } else {
+            for (role in strategy.roles) {
 
-            console.log(role, current_ratio, desired_ratio)
-            if (desired_ratio > current_ratio) {
-                directive.push({
-                    "action": "spawn_creep",
-                    "role": role
-                })
+                if (census[role] == null) census[role] = { "count": 0, "density": 0 }
+
+                if (strategy.roles[role].density > census[role].density) {
+                    directive.push({
+                        "action": "spawn_creep",
+                        "role": role
+                    })
+                }
             }
+            return directive
         }
-        return directive
     }
 }
