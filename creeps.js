@@ -10,9 +10,42 @@ const moveToOpt = {
 
 const creepBehaviorObject = {
     nurse: (creep) => {
-        // deliver energy to spawn
-        if (creep.transfer(Game.spawns['Spawn1'], RESOURCE_ENERGY) == -9) {
-            creep.moveTo(Game.spawns['Spawn1'], moveToOpt)
+
+        if (creep.memory.useTargetId == null) {
+
+            // find extensions in room
+            extensions = creep.room.find(FIND_MY_STRUCTURES, {
+                filter: { structureType: STRUCTURE_EXTENSION }
+            })
+
+            // look for empty extensions and set target if found
+            for (var name in extensions) {
+                if (extensions[name].store.getFreeCapacity(RESOURCE_ENERGY) != 0) {
+                    creep.memory.useTargetId = extensions[name].id
+                }
+            }
+
+            // if no empty extensions found
+            if (creep.memory.useTargetId == null) {
+
+                // set target to construction site
+                creep.memory.useTargetId = Game.spawns[Object.keys(Game.spawns)[0]].id
+            }
+
+        } else {
+            // if target has no free capacity
+            if (Game.getObjectById(creep.memory.useTargetId).store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+
+                // clear target and recalculate
+                creep.memory.useTargetId = null
+            }
+
+            // attempt transfer action
+            if (creep.transfer(Game.getObjectById(creep.memory.useTargetId), RESOURCE_ENERGY) == -9) {
+
+                // moveto target if actions failed due to distance
+                creep.moveTo(Game.getObjectById(creep.memory.useTargetId), moveToOpt)
+            }
         }
     },
     engineer: (creep) => {
@@ -78,6 +111,7 @@ module.exports = {
             // assessing store capacity and setting directive
             if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
                 creep.memory.directive = 'harvestResources'
+                creep.memory.useTargetId = null
 
                 // assigning harvest target if not set 
                 if (creep.memory.harvestTargetId == null) {
