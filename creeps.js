@@ -18,17 +18,32 @@ const creepBehaviorObject = {
                 filter: { structureType: STRUCTURE_EXTENSION }
             })
 
-            // look for empty extensions and set target if found
+            // curated array of extensions
+            let nonFullExtensions = []
+
+            // look for empty extensions and push to curated array
             for (var name in extensions) {
                 if (extensions[name].store.getFreeCapacity(RESOURCE_ENERGY) != 0) {
-                    creep.memory.useTargetId = extensions[name].id
+                    nonFullExtensions.push(extensions[name])
                 }
             }
 
-            // if no empty extensions found
-            if (creep.memory.useTargetId == null) {
+            // if there are enough extensions to compare
+            if (nonFullExtensions.length > 1) {
 
-                // set target to construction site
+                // find closest
+                creep.memory.useTargetId = creep.pos.findClosestByPath(nonFullExtensions).id
+
+                // if only one valid extension
+            } else if (nonFullExtensions.length == 1) {
+
+                // target without path calculation
+                creep.memory.useTargetId = nonFullExtensions[0].id
+
+                // if no empty extensions found
+            } else {
+
+                // set target to primary spawn
                 creep.memory.useTargetId = Game.spawns[Object.keys(Game.spawns)[0]].id
             }
 
