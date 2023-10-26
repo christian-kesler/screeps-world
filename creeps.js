@@ -81,8 +81,11 @@ const creepBehaviorObject = {
             // if no broken roads found
             if (creep.memory.useTargetId == null) {
 
-                // set target to construction site
-                creep.memory.useTargetId = Game.constructionSites[Object.keys(Game.constructionSites)[0]].id
+                // get all construction sites
+                constructionSites = Object.values(Game.constructionSites)
+
+                // set target to closest construction site
+                creep.memory.useTargetId = creep.pos.findClosestByPath(constructionSites).id
             }
 
         } else {
