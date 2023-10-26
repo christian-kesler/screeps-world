@@ -66,28 +66,33 @@ const creepBehaviorObject = {
     engineer: (creep) => {
         if (creep.memory.useTargetId == null) {
 
-            // find roads in room
-            roads = creep.room.find(FIND_STRUCTURES, {
+            // find maintainableStructures in room
+            maintainableStructures = creep.room.find(FIND_STRUCTURES, {
                 filter: { structureType: STRUCTURE_ROAD }
             })
 
-            // look for broken roads and set target if found
-            for (var name in roads) {
-                if (roads[name].hits <= 2000) {
-                    creep.memory.useTargetId = roads[name].id
+            // create a default item that will be immediately overwritten
+            let mostWornStructure = {
+                hits: Infinity
+            }
+
+            // find mostWornStructure in maintainableStructures
+            for (var name in maintainableStructures) {
+                if (maintainableStructures[name].hits < mostWornStructure.hits) {
+                    mostWornStructure = maintainableStructures[name]
                 }
             }
 
-            // if no broken roads found
-            if (creep.memory.useTargetId == null) {
+            // if mostWornStructure is worn enough
+            if (mostWornStructure.hits <= 2000) {
+                creep.memory.useTargetId = mostWornStructure.id
 
-                // get all construction sites
-                constructionSites = Object.values(Game.constructionSites)
+                // if mostWornStructure is not worn enough
+            } else {
 
                 // set target to closest construction site
-                creep.memory.useTargetId = creep.pos.findClosestByPath(constructionSites).id
+                creep.memory.useTargetId = creep.pos.findClosestByPath(Object.values(Game.constructionSites)).id
             }
-
         } else {
 
             // if target has max hits
