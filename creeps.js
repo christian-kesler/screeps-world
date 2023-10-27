@@ -32,18 +32,21 @@ const creepBehaviorObject = {
             if (nonFullExtensions.length > 1) {
 
                 // find closest
+                creep.memory.useTargetTime = Game.time
                 creep.memory.useTargetId = creep.pos.findClosestByPath(nonFullExtensions).id
 
                 // if only one valid extension
             } else if (nonFullExtensions.length == 1) {
 
                 // target without path calculation
+                creep.memory.useTargetTime = Game.time
                 creep.memory.useTargetId = nonFullExtensions[0].id
 
                 // if no empty extensions found
             } else {
 
                 // set target to primary spawn
+                creep.memory.useTargetTime = Game.time
                 creep.memory.useTargetId = Game.spawns[Object.keys(Game.spawns)[0]].id
             }
 
@@ -52,6 +55,7 @@ const creepBehaviorObject = {
             if (Game.getObjectById(creep.memory.useTargetId).store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
 
                 // clear target and recalculate
+                creep.memory.useTargetTime = Game.time
                 creep.memory.useTargetId = null
             }
 
@@ -85,12 +89,14 @@ const creepBehaviorObject = {
 
             // if mostWornStructure is worn enough
             if (mostWornStructure.hits <= 2000) {
+                creep.memory.useTargetTime = Game.time
                 creep.memory.useTargetId = mostWornStructure.id
 
                 // if mostWornStructure is not worn enough
             } else {
 
                 // set target to closest construction site
+                creep.memory.useTargetTime = Game.time
                 creep.memory.useTargetId = creep.pos.findClosestByPath(Object.values(Game.constructionSites)).id
             }
         } else {
@@ -99,6 +105,7 @@ const creepBehaviorObject = {
             if (Game.getObjectById(creep.memory.useTargetId).hits == 5000) {
 
                 // clear target and recalculate
+                creep.memory.useTargetTime = Game.time
                 creep.memory.useTargetId = null
             }
 
@@ -125,8 +132,9 @@ const creepBehaviorObject = {
 module.exports = {
     creepLoop: () => {
 
-        for (var name in Game.creeps) {
+        let harvestTargetsArr = []
 
+        for (var name in Game.creeps) {
 
             // creep shorthand
             let creep = Game.creeps[name]
@@ -134,7 +142,17 @@ module.exports = {
             // assessing store capacity and setting directive
             if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
                 creep.memory.directive = 'harvestResources'
+                creep.memory.useTargetTime = Game.time
                 creep.memory.useTargetId = null
+
+            } else if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                creep.memory.directive = 'useResources'
+                creep.memory.harvestTargetTime = Game.time
+                creep.memory.harvestTargetId = null
+            }
+
+            // performing harvest directive
+            if (creep.memory.directive == 'harvestResources') {
 
                 // assigning harvest target if not set 
                 if (creep.memory.harvestTargetId == null) {
@@ -145,15 +163,11 @@ module.exports = {
                             richestEnergySource = sources[i]
                         }
                     }
+                    creep.memory.harvestTargetTime = Game.time
                     creep.memory.harvestTargetId = richestEnergySource.id
                 }
-            } else if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
-                creep.memory.directive = 'useResources'
-                creep.memory.harvestTargetId = null
-            }
 
-            // performing harvest directive
-            if (creep.memory.directive == 'harvestResources') {
+                // trying to perform harvest operations
                 if (creep.harvest(Game.getObjectById(creep.memory.harvestTargetId)) == -9) {
                     creep.moveTo(Game.getObjectById(creep.memory.harvestTargetId), moveToOpt)
                 }
@@ -164,6 +178,9 @@ module.exports = {
                 creep.memory.directive = 'useResources'
             }
 
+            // prep data to check for crowding
+            harvestTargetsArr.push(creep.memory.harvestTargetId)
+
             // performing use directive
             try {
                 if (creep.memory.directive == 'useResources') {
@@ -173,5 +190,35 @@ module.exports = {
                 console.log(err.message)
             }
         }
+
+        // reduce harvest targets to map
+        const harvestTargetMap = harvestTargetsArr.reduce(
+            (accumulator, currentValue) =>
+                accumulator.set(currentValue, (accumulator.get(currentValue) || 0) + 1),
+            new Map()
+        );
+
+        for (let [key, value] of harvestTargetMap.entries()) {
+            console.log(key + " = " + value)
+
+            if (key != null) {
+                if (value > 3) {
+                    creepCount = 0
+                    for (var name in Game.creeps) {
+                        let creep = Game.creeps[name]
+
+                        if (creep.memory.harvestTargetId == key) {
+                            creepCount++
+                            if (creepCount > 2) {
+                                creep.memory.harvestTargetTime = Game.time
+                                creep.memory.harvestTargetId = null
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+
     }
 }
