@@ -8,7 +8,74 @@ const moveToOpt = {
     }
 }
 
-const creepBehaviorObject = {
+const gatherResourcesFromSources = (creep) => {
+    // assigning harvest target if not set 
+    if (creep.memory.harvestTargetId == null) {
+        let sources = creep.room.find(FIND_SOURCES_ACTIVE)
+        richestEnergySource = sources[0]
+        for (let i = 0; i < sources.length; i++) {
+            if (sources[i].energy > richestEnergySource.energy) {
+                richestEnergySource = sources[i]
+            }
+        }
+        creep.memory.harvestTargetTime = Game.time
+        creep.memory.harvestTargetId = richestEnergySource.id
+    }
+
+    // trying to perform harvest operations
+    if (creep.harvest(Game.getObjectById(creep.memory.harvestTargetId)) == -9) {
+        creep.moveTo(Game.getObjectById(creep.memory.harvestTargetId), moveToOpt)
+    }
+}
+
+const gatherResourcesFromContainers = (creep) => {
+
+    // assigning harvest target if not set 
+    if (creep.memory.harvestTargetId == null) {
+        let containers = creep.room.find(FIND_MY_STRUCTURES, {
+            filter: { structureType: STRUCTURE_CONTAINER }
+        })
+
+        if (containers.length != 0) {
+            richestContainer = sources[0]
+            for (let i = 0; i < containers.length; i++) {
+                if (sources[i].energy > richestContainer.energy) {
+                    richestContainer = sources[i]
+                }
+            }
+            creep.memory.harvestTargetTime = Game.time
+            creep.memory.harvestTargetId = richestContainer.id
+        } else {
+            gatherResourcesFromSources(creep)
+        }
+    }
+
+    console.log(creep.withdraw(Game.getObjectById(creep.memory.harvestTargetId)))
+    // trying to perform harvest operations
+    if (creep.withdraw(Game.getObjectById(creep.memory.harvestTargetId)) == -9) {
+        creep.moveTo(Game.getObjectById(creep.memory.harvestTargetId), moveToOpt)
+    } else if (creep.withdraw(Game.getObjectById(creep.memory.harvestTargetId)) == -7) {
+        gatherResourcesFromSources(creep)
+    }
+
+}
+
+const gatherResourcesByRole = {
+    harvester: (creep) => {
+        gatherResourcesFromSources(creep)
+    },
+    nurse: (creep) => {
+        gatherResourcesFromContainers(creep)
+    },
+    engineer: (creep) => {
+        gatherResourcesFromContainers(creep)
+    },
+    upgrader: (creep) => {
+        gatherResourcesFromContainers(creep)
+    },
+}
+
+const useResourcesByRole = {
     nurse: (creep) => {
 
         if (creep.memory.useTargetId == null) {
@@ -127,12 +194,69 @@ const creepBehaviorObject = {
             creep.moveTo(creep.room.controller, moveToOpt)
         }
     },
+    harvester: (creep) => {
+
+        if (creep.memory.useTargetId == null) {
+
+            // find containers in room
+            containers = creep.room.find(FIND_MY_STRUCTURES, {
+                filter: { structureType: STRUCTURE_CONTAINER }
+            })
+
+            // curated array of containers
+            let nonFullContainers = []
+
+            // look for empty containers and push to curated array
+            for (var name in containers) {
+                if (containers[name].store.getFreeCapacity(RESOURCE_ENERGY) != 0) {
+                    nonFullContainers.push(containers[name])
+                }
+            }
+
+            // if there are enough containers to compare
+            if (nonFullContainers.length > 1) {
+
+                // find closest
+                creep.memory.useTargetTime = Game.time
+                creep.memory.useTargetId = creep.pos.findClosestByPath(nonFullContainers).id
+
+                // if only one valid container
+            } else if (nonFullContainers.length == 1) {
+
+                // target without path calculation
+                creep.memory.useTargetTime = Game.time
+                creep.memory.useTargetId = nonFullContainers[0].id
+
+                // if no empty containers found
+            } else {
+
+                // set target to primary spawn
+                creep.memory.useTargetTime = Game.time
+                creep.memory.useTargetId = Game.spawns[Object.keys(Game.spawns)[0]].id
+            }
+
+        } else {
+            // if target has no free capacity
+            if (Game.getObjectById(creep.memory.useTargetId).store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+
+                // clear target and recalculate
+                creep.memory.useTargetTime = Game.time
+                creep.memory.useTargetId = null
+            }
+
+            // attempt transfer action
+            if (creep.transfer(Game.getObjectById(creep.memory.useTargetId), RESOURCE_ENERGY) == -9) {
+
+                // moveto target if actions failed due to distance
+                creep.moveTo(Game.getObjectById(creep.memory.useTargetId), moveToOpt)
+            }
+        }
+
+    }
 }
 
 module.exports = {
     creepLoop: () => {
-
-        let harvestTargetsArr = []
 
         for (var name in Game.creeps) {
 
@@ -151,26 +275,20 @@ module.exports = {
                 creep.memory.harvestTargetId = null
             }
 
-            // performing harvest directive
-            if (creep.memory.directive == 'harvestResources') {
+            try {
 
-                // assigning harvest target if not set 
-                if (creep.memory.harvestTargetId == null) {
-                    let sources = creep.room.find(FIND_SOURCES_ACTIVE)
-                    richestEnergySource = sources[0]
-                    for (let i = 0; i < sources.length; i++) {
-                        if (sources[i].energy > richestEnergySource.energy) {
-                            richestEnergySource = sources[i]
-                        }
-                    }
-                    creep.memory.harvestTargetTime = Game.time
-                    creep.memory.harvestTargetId = richestEnergySource.id
+                // performing harvest directive
+                if (creep.memory.directive == 'harvestResources') {
+                    gatherResourcesByRole[creep.memory.role](creep)
                 }
 
-                // trying to perform harvest operations
-                if (creep.harvest(Game.getObjectById(creep.memory.harvestTargetId)) == -9) {
-                    creep.moveTo(Game.getObjectById(creep.memory.harvestTargetId), moveToOpt)
+                // performing use directive
+                if (creep.memory.directive == 'useResources') {
+                    useResourcesByRole[creep.memory.role](creep)
                 }
+
+            } catch (err) {
+                console.log(err.message)
             }
 
             // catching unexpected directives
@@ -178,46 +296,6 @@ module.exports = {
                 creep.memory.directive = 'useResources'
             }
 
-            // prep data to check for crowding
-            harvestTargetsArr.push(creep.memory.harvestTargetId)
-
-            // performing use directive
-            try {
-                if (creep.memory.directive == 'useResources') {
-                    creepBehaviorObject[creep.memory.role](creep)
-                }
-            } catch (err) {
-                console.log(err.message)
-            }
-        }
-
-        // reduce harvest targets to map
-        const harvestTargetMap = harvestTargetsArr.reduce(
-            (accumulator, currentValue) =>
-                accumulator.set(currentValue, (accumulator.get(currentValue) || 0) + 1),
-            new Map()
-        );
-
-        for (let [key, value] of harvestTargetMap.entries()) {
-            console.log(key + " = " + value)
-
-            if (key != null) {
-                if (value > 3) {
-                    creepCount = 0
-                    for (var name in Game.creeps) {
-                        let creep = Game.creeps[name]
-
-                        if (creep.memory.harvestTargetId == key) {
-                            creepCount++
-                            if (creepCount > 2) {
-                                creep.memory.harvestTargetTime = Game.time
-                                creep.memory.harvestTargetId = null
-                            }
-                        }
-
-                    }
-                }
-            }
         }
 
     }

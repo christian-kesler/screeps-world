@@ -45,6 +45,13 @@ module.exports = {
                     })
                 }
             }
+
+            if (directive.length == 0) {
+                directive.push({
+                    "action": "spawn_creep",
+                    "role": strategy.default_role
+                })
+            }
             return directive
         }
     }

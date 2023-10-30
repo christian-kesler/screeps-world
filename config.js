@@ -1,17 +1,19 @@
 module.exports = {
     strategy: {
         roles: {
+            harvester: {
+                density: 0.4
+            },
             nurse: {
-                density: 0.4,
+                density: 0.2,
             },
             upgrader: {
-                density: 0.4,
+                density: 0.2,
             },
             engineer: {
                 density: 0.2,
             },
         },
-        max_creeps: 10,
-        default_role: 'nurse'
+        default_role: 'harvester'
     }
 }
