@@ -12,7 +12,7 @@ const gatherResourcesFromSources = (creep) => {
     // assigning harvest target if not set 
     if (creep.memory.harvestTargetId == null) {
         let sources = creep.room.find(FIND_SOURCES_ACTIVE)
-        richestEnergySource = sources[0]
+        richestEnergySource = sources[1]
         for (let i = 0; i < sources.length; i++) {
             if (sources[i].energy > richestEnergySource.energy) {
                 richestEnergySource = sources[i]
@@ -50,7 +50,6 @@ const gatherResourcesFromContainers = (creep) => {
         }
     }
 
-    console.log(creep.withdraw(Game.getObjectById(creep.memory.harvestTargetId)))
     // trying to perform harvest operations
     if (creep.withdraw(Game.getObjectById(creep.memory.harvestTargetId)) == -9) {
         creep.moveTo(Game.getObjectById(creep.memory.harvestTargetId), moveToOpt)
@@ -65,13 +64,25 @@ const gatherResourcesByRole = {
         gatherResourcesFromSources(creep)
     },
     nurse: (creep) => {
-        gatherResourcesFromContainers(creep)
+        if (creep.room.memory.strategyCode == 1) {
+            gatherResourcesFromContainers(creep)
+        } else {
+            gatherResourcesFromSources(creep)
+        }
     },
     engineer: (creep) => {
-        gatherResourcesFromContainers(creep)
+        if (creep.room.memory.strategyCode == 1) {
+            gatherResourcesFromContainers(creep)
+        } else {
+            gatherResourcesFromSources(creep)
+        }
     },
     upgrader: (creep) => {
-        gatherResourcesFromContainers(creep)
+        if (creep.room.memory.strategyCode == 1) {
+            gatherResourcesFromContainers(creep)
+        } else {
+            gatherResourcesFromSources(creep)
+        }
     },
 }
 

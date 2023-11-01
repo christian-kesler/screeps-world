@@ -1,15 +1,14 @@
-const { strategy } = require('config')
-const { creepCensus, generateSpawnDirective } = require('analytics')
+const { generateSpawnDirective } = require('analytics')
 
 module.exports = {
     spawnLoop: () => {
 
         for (var name in Game.spawns) {
 
-            let census = creepCensus()
-            let directive = generateSpawnDirective(strategy, census)
+            let spawn = Game.spawns[name]
 
-            console.log(`Census: ${JSON.stringify(census)}`)
+            let directive = generateSpawnDirective(spawn)
+
             console.log(`Directive: ${JSON.stringify(directive)}`)
 
             for (let i = 0; i < directive.length; i++) {
