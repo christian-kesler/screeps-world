@@ -8,6 +8,43 @@ const moveToOpt = {
     }
 }
 
+const findMostWorn = (structures) => {
+    let mostWornStructure = {
+        hits: Infinity
+    }
+
+    // find mostWornStructure in structures
+    for (var name in structures) {
+        if (structures[name].hits < mostWornStructure.hits) {
+            mostWornStructure = structures[name]
+        }
+    }
+
+    return mostWornStructure
+}
+
+const findMostWornRoad = (room) => {
+    const roads = room.find(FIND_STRUCTURES, {
+        filter: { structureType: STRUCTURE_ROAD }
+    })
+
+    const mostWornRoad = findMostWorn(roads)
+
+    return mostWornRoad
+}
+
+const findMostWornContainer = (room) => {
+    const containers = room.find(FIND_MY_STRUCTURES, {
+        filter: { structureType: STRUCTURE_CONTAINER }
+    })
+
+    const mostWornContainer = findMostWorn(containers)
+
+    return mostWornContainer
+}
+
+
+
 const gatherResourcesFromSources = (creep) => {
     // assigning harvest target if not set 
     if (creep.memory.harvestTargetId == null) {
@@ -148,54 +185,62 @@ const useResourcesByRole = {
     engineer: (creep) => {
         if (creep.memory.useTargetId == null) {
 
-            // find maintainableStructures in room
-            maintainableStructures = creep.room.find(FIND_STRUCTURES, {
-                filter: { structureType: STRUCTURE_ROAD }
-            })
+            const mostWornRoad = findMostWornRoad(creep.room)
+            const mostWornContainer = findMostWornContainer(creep.room)
 
-            // create a default item that will be immediately overwritten
-            let mostWornStructure = {
-                hits: Infinity
-            }
-
-            // find mostWornStructure in maintainableStructures
-            for (var name in maintainableStructures) {
-                if (maintainableStructures[name].hits < mostWornStructure.hits) {
-                    mostWornStructure = maintainableStructures[name]
-                }
-            }
-
-            // if mostWornStructure is worn enough
-            if (mostWornStructure.hits <= 2000) {
+            // if mostWornContainer is worn enough
+            if (mostWornContainer.hits != Infinity && mostWornContainer.hits <= 100000) {
                 creep.memory.useTargetTime = Game.time
-                creep.memory.useTargetId = mostWornStructure.id
+                creep.memory.useTargetType = 'container'
+                creep.memory.useTargetId = mostWornContainer.id
 
-                // if mostWornStructure is not worn enough
+                // if mostWornRoad is worn enough
+            } else if (mostWornRoad.hits != Infinity && mostWornRoad.hits <= 2000) {
+                creep.memory.useTargetTime = Game.time
+                creep.memory.useTargetType = 'road'
+                creep.memory.useTargetId = mostWornRoad.id
+
+                // if mostWornRoad is not worn enough
             } else {
 
                 // set target to closest construction site
                 creep.memory.useTargetTime = Game.time
+                creep.memory.useTargetType = 'constructionSite'
                 creep.memory.useTargetId = creep.pos.findClosestByPath(Object.values(Game.constructionSites)).id
             }
         } else {
+            if (creep.memory.useTargetType == 'constructionSite') {
+                if (creep.build(Game.getObjectById(creep.memory.useTargetId)) == -9) {
 
-            // if target has max hits
-            if (Game.getObjectById(creep.memory.useTargetId).hits == 5000) {
+                    // moveto target if actions failed due to distance
+                    creep.moveTo(Game.getObjectById(creep.memory.useTargetId), moveToOpt)
+                }
+            } else {
 
-                // clear target and recalculate
-                creep.memory.useTargetTime = Game.time
-                creep.memory.useTargetId = null
-            }
+                if (creep.repair(Game.getObjectById(creep.memory.useTargetId)) == -9) {
 
-            // attempt build and repair actions
-            if (
-                creep.build(Game.getObjectById(creep.memory.useTargetId)) == -9
-                ||
-                creep.repair(Game.getObjectById(creep.memory.useTargetId)) == -9
-            ) {
+                    // moveto target if actions failed due to distance
+                    creep.moveTo(Game.getObjectById(creep.memory.useTargetId), moveToOpt)
+                }
 
-                // moveto target if actions failed due to distance
-                creep.moveTo(Game.getObjectById(creep.memory.useTargetId), moveToOpt)
+                if (
+                    (
+                        creep.memory.useTargetType == 'road'
+                        &&
+                        Game.getObjectById(creep.memory.useTargetId).hits == 5000
+                    )
+                    ||
+                    (
+                        creep.memory.useTargetType == 'container'
+                        &&
+                        Game.getObjectById(creep.memory.useTargetId).hits > 200000
+                    )
+                ) {
+
+                    // clear target and recalculate
+                    creep.memory.useTargetTime = Game.time
+                    creep.memory.useTargetId = null
+                }
             }
         }
     },
