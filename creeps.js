@@ -8,6 +8,7 @@ const moveToOpt = {
     }
 }
 
+
 const findMostWorn = (structures) => {
     let mostWornStructure = {
         hits: Infinity
@@ -34,7 +35,7 @@ const findMostWornRoad = (room) => {
 }
 
 const findMostWornContainer = (room) => {
-    const containers = room.find(FIND_MY_STRUCTURES, {
+    const containers = room.find(FIND_STRUCTURES, {
         filter: { structureType: STRUCTURE_CONTAINER }
     })
 
@@ -44,8 +45,7 @@ const findMostWornContainer = (room) => {
 }
 
 
-
-const gatherResourcesFromSources = (creep) => {
+const gatherEnergyFromRichestSource = (creep) => {
     // assigning harvest target if not set 
     if (creep.memory.harvestTargetId == null) {
         let sources = creep.room.find(FIND_SOURCES_ACTIVE)
@@ -62,63 +62,79 @@ const gatherResourcesFromSources = (creep) => {
     // trying to perform harvest operations
     if (creep.harvest(Game.getObjectById(creep.memory.harvestTargetId)) == -9) {
         creep.moveTo(Game.getObjectById(creep.memory.harvestTargetId), moveToOpt)
+    } else if (creep.harvest(Game.getObjectById(creep.memory.harvestTargetId)) == -7) {
+        creep.memory.harvestTargetId = null
     }
 }
+
+const gatherEnergyFromClosestSource = (creep) => {
+    // assigning harvest target if not set 
+    if (creep.memory.harvestTargetId == null) {
+        let sources = creep.room.find(FIND_SOURCES_ACTIVE)
+
+        creep.memory.harvestTargetTime = Game.time
+        creep.memory.harvestTargetId = creep.pos.findClosestByPath(sources).id
+    }
+
+    // trying to perform harvest operations
+    if (creep.harvest(Game.getObjectById(creep.memory.harvestTargetId)) == -9) {
+        creep.moveTo(Game.getObjectById(creep.memory.harvestTargetId), moveToOpt)
+    } else if (creep.harvest(Game.getObjectById(creep.memory.harvestTargetId)) == -7) {
+        creep.memory.harvestTargetId = null
+    }
+}
+
 
 const gatherResourcesFromContainers = (creep) => {
 
     // assigning harvest target if not set 
     if (creep.memory.harvestTargetId == null) {
-        let containers = creep.room.find(FIND_MY_STRUCTURES, {
+        let containers = creep.room.find(FIND_STRUCTURES, {
             filter: { structureType: STRUCTURE_CONTAINER }
         })
 
-        if (containers.length != 0) {
-            richestContainer = sources[0]
-            for (let i = 0; i < containers.length; i++) {
-                if (sources[i].energy > richestContainer.energy) {
-                    richestContainer = sources[i]
-                }
+        richestContainer = containers[0]
+        for (let i = 0; i < containers.length; i++) {
+            if (containers[i].energy > richestContainer.energy) {
+                richestContainer = containers[i]
             }
-            creep.memory.harvestTargetTime = Game.time
-            creep.memory.harvestTargetId = richestContainer.id
-        } else {
-            gatherResourcesFromSources(creep)
         }
+        creep.memory.harvestTargetTime = Game.time
+        creep.memory.harvestTargetId = richestContainer.id
     }
 
     // trying to perform harvest operations
-    if (creep.withdraw(Game.getObjectById(creep.memory.harvestTargetId)) == -9) {
+    if (creep.withdraw(Game.getObjectById(creep.memory.harvestTargetId), RESOURCE_ENERGY) == -9) {
         creep.moveTo(Game.getObjectById(creep.memory.harvestTargetId), moveToOpt)
-    } else if (creep.withdraw(Game.getObjectById(creep.memory.harvestTargetId)) == -7) {
-        gatherResourcesFromSources(creep)
+    } else if (creep.withdraw(Game.getObjectById(creep.memory.harvestTargetId), RESOURCE_ENERGY) == -7) {
+        creep.memory.harvestTargetId = null
     }
-
 }
+
 
 const gatherResourcesByRole = {
     harvester: (creep) => {
-        gatherResourcesFromSources(creep)
+        gatherEnergyFromClosestSource(creep)
     },
     nurse: (creep) => {
-        if (creep.room.memory.strategyCode == 1) {
+        if (creep.room.memory.strategyCode >= 1.2) {
             gatherResourcesFromContainers(creep)
         } else {
-            gatherResourcesFromSources(creep)
+            gatherEnergyFromRichestSource(creep)
         }
     },
     engineer: (creep) => {
-        if (creep.room.memory.strategyCode == 1) {
+        if (creep.room.memory.strategyCode >= 1.2) {
             gatherResourcesFromContainers(creep)
         } else {
-            gatherResourcesFromSources(creep)
+            gatherEnergyFromRichestSource(creep)
         }
     },
     upgrader: (creep) => {
-        if (creep.room.memory.strategyCode == 1) {
+        if (creep.room.memory.strategyCode >= 1.2) {
             gatherResourcesFromContainers(creep)
         } else {
-            gatherResourcesFromSources(creep)
+            gatherEnergyFromRichestSource(creep)
         }
     },
 }
@@ -255,7 +271,7 @@ const useResourcesByRole = {
         if (creep.memory.useTargetId == null) {
 
             // find containers in room
-            containers = creep.room.find(FIND_MY_STRUCTURES, {
+            containers = creep.room.find(FIND_STRUCTURES, {
                 filter: { structureType: STRUCTURE_CONTAINER }
             })
 
@@ -311,6 +327,7 @@ const useResourcesByRole = {
     }
 }
 
+
 module.exports = {
     creepLoop: () => {
 
@@ -332,7 +349,6 @@ module.exports = {
             }
 
             try {
-
                 // performing harvest directive
                 if (creep.memory.directive == 'harvestResources') {
                     gatherResourcesByRole[creep.memory.role](creep)
@@ -344,7 +360,8 @@ module.exports = {
                 }
 
             } catch (err) {
-                console.log(err.message)
+                console.log(`ERROR: ${err.message}`)
+                console.log(`TRIGGERED BY CREEP with NAME: ${crep.name} and ROLE: ${creep.memory.role}`)
             }
 
             // catching unexpected directives

@@ -43,7 +43,7 @@ module.exports = {
     generateSpawnDirective: (spawn) => {
 
         // defining variables
-        let strategyCode = spawn.room.memory.strategy
+        let strategyCode = Math.floor(spawn.room.memory.strategyCode)
         let census = spawn.room.memory.census
         let directive = []
 
@@ -53,11 +53,15 @@ module.exports = {
             // spawn default creep
             directive.push({
                 "action": "spawn_creep",
-                "role": strategies[strategyCode].default_role
+                "role": strategies[strategyCode].default_role,
             })
             return directive
         } else {
             // if creeps found
+
+            let mostInNeedOfSpawn = {
+                densityRatio: 0
+            }
 
             // iterate over roles
             for (role in strategies[strategyCode].roles) {
@@ -67,12 +71,22 @@ module.exports = {
 
                 // if census density is lower than strategy demands, spawn creep of said role
                 if (strategies[strategyCode].roles[role].density > census[role].density) {
-                    directive.push({
-                        "action": "spawn_creep",
-                        "role": role
-                    })
+                    let currentDensityRatio = strategies[strategyCode].roles[role].density / census[role].density
+                    if (currentDensityRatio > mostInNeedOfSpawn.densityRatio) {
+                        mostInNeedOfSpawn = {
+                            densityRatio: currentDensityRatio,
+                            role: role,
+                            body: strategies[strategyCode].roles[role].body,
+                        }
+                    }
                 }
             }
+
+            directive.push({
+                "action": "spawn_creep",
+                "role": mostInNeedOfSpawn.role,
+                "body": mostInNeedOfSpawn.body,
+            })
 
             // if no other directive priorities, spawn default
             if (directive.length == 0) {
@@ -91,17 +105,20 @@ module.exports = {
         // iterate over rooms
         for (var name in Game.rooms) {
             let room = Game.rooms[name]
+            let census = room.memory.census
 
             // find my containers
-            let containers = room.find(FIND_MY_STRUCTURES, {
+            let containers = room.find(FIND_STRUCTURES, {
                 filter: { structureType: STRUCTURE_CONTAINER }
             })
 
             // determine room strategy code
             if (containers.length == 0) {
                 room.memory.strategyCode = 0
+            } else if (census.harvester.count == 0) {
+                room.memory.strategyCode = 1.1
             } else {
-                room.memory.strategyCode = 1
+                room.memory.strategyCode = 1.2
             }
         }
     }
