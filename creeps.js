@@ -95,7 +95,8 @@ const gatherResourcesFromContainers = (creep) => {
 
         richestContainer = containers[0]
         for (let i = 0; i < containers.length; i++) {
-            if (containers[i].energy > richestContainer.energy) {
+            console.log(containers[i].store.energy)
+            if (containers[i].store.energy > richestContainer.store.energy) {
                 richestContainer = containers[i]
             }
         }
@@ -208,21 +209,30 @@ const useResourcesByRole = {
             if (mostWornContainer.hits != Infinity && mostWornContainer.hits <= 100000) {
                 creep.memory.useTargetTime = Game.time
                 creep.memory.useTargetType = 'container'
+                console.log(mostWornContainer)
                 creep.memory.useTargetId = mostWornContainer.id
 
                 // if mostWornRoad is worn enough
             } else if (mostWornRoad.hits != Infinity && mostWornRoad.hits <= 2000) {
                 creep.memory.useTargetTime = Game.time
                 creep.memory.useTargetType = 'road'
+                console.log(mostWornRoad)
                 creep.memory.useTargetId = mostWornRoad.id
 
                 // if mostWornRoad is not worn enough
             } else {
 
-                // set target to closest construction site
-                creep.memory.useTargetTime = Game.time
-                creep.memory.useTargetType = 'constructionSite'
-                creep.memory.useTargetId = creep.pos.findClosestByPath(Object.values(Game.constructionSites)).id
+                if (Object.values(Game.constructionSites).length != 0) {
+                    // set target to closest construction site
+                    creep.memory.useTargetTime = Game.time
+                    creep.memory.useTargetType = 'constructionSite'
+                    creep.memory.useTargetId = creep.pos.findClosestByPath(Object.values(Game.constructionSites)).id
+                } else {
+                    creep.memory.useTargetTime = Game.time
+                    creep.memory.useTargetType = 'moveTo'
+                    creep.memory.useTargetId = Game.spawns[Object.keys(Game.spawns)[0]].id
+                }
+
             }
         } else {
             if (creep.memory.useTargetType == 'constructionSite') {
@@ -250,6 +260,10 @@ const useResourcesByRole = {
                         creep.memory.useTargetType == 'container'
                         &&
                         Game.getObjectById(creep.memory.useTargetId).hits > 200000
+                    )
+                    ||
+                    (
+                        Game.time - creep.memory.useTargetTime > 100
                     )
                 ) {
 
@@ -360,8 +374,8 @@ module.exports = {
                 }
 
             } catch (err) {
-                console.log(`ERROR: ${err.message}`)
-                console.log(`TRIGGERED BY CREEP with NAME: ${crep.name} and ROLE: ${creep.memory.role}`)
+                console.log(`ERROR: ${err}`)
+                console.log(`TRIGGERED BY CREEP with NAME: ${creep.name} and ROLE: ${creep.memory.role}`)
             }
 
             // catching unexpected directives

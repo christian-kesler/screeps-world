@@ -11,7 +11,7 @@ module.exports = {
 
             let directive = generateSpawnDirective(spawn)
 
-            console.log(`Directive: ${JSON.stringify(directive)}`)
+            console.log(`DIRECTIVE: ${JSON.stringify(directive)}`)
 
             for (let i = 0; i < directive.length; i++) {
                 if (directive[i].body == null) {
