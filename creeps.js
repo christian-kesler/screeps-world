@@ -95,7 +95,6 @@ const gatherResourcesFromContainers = (creep) => {
 
         richestContainer = containers[0]
         for (let i = 0; i < containers.length; i++) {
-            console.log(containers[i].store.energy)
             if (containers[i].store.energy > richestContainer.store.energy) {
                 richestContainer = containers[i]
             }
@@ -209,14 +208,12 @@ const useResourcesByRole = {
             if (mostWornContainer.hits != Infinity && mostWornContainer.hits <= 100000) {
                 creep.memory.useTargetTime = Game.time
                 creep.memory.useTargetType = 'container'
-                console.log(mostWornContainer)
                 creep.memory.useTargetId = mostWornContainer.id
 
                 // if mostWornRoad is worn enough
             } else if (mostWornRoad.hits != Infinity && mostWornRoad.hits <= 2000) {
                 creep.memory.useTargetTime = Game.time
                 creep.memory.useTargetType = 'road'
-                console.log(mostWornRoad)
                 creep.memory.useTargetId = mostWornRoad.id
 
                 // if mostWornRoad is not worn enough
