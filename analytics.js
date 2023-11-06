@@ -1,7 +1,7 @@
 const { strategies } = require('./config')
 
 module.exports = {
-    conductRoomCensus: () => {
+    conductRoomCreepCensus: () => {
 
         // iterating over rooms
         for (var name in Game.rooms) {
@@ -36,15 +36,54 @@ module.exports = {
             }
 
             // saving to room memory
-            room.memory.census = census
+            room.memory.creepCensus = census
+        }
+    },
+
+    conductRoomStructureCensus: () => {
+
+        // iterating over rooms
+        for (var name in Game.rooms) {
+
+            // defining variables
+            let room = Game.rooms[name]
+            let structures = room.find(FIND_MY_STRUCTURES)
+            let census = {
+                total: 0
+            }
+
+            // iterating over structures
+            for (let i = 0; i < structures.length; i++) {
+                let structure = structures[i]
+
+                // console.log(JSON.stringify(structure))
+
+                // adding to census
+                if (census[structure.structureType] == undefined) {
+                    census[structure.structureType] = {
+                        count: 1
+                    }
+                } else {
+                    census[structure.structureType].count += 1
+                }
+                census.total += 1
+            }
+
+            // saving to room memory
+            room.memory.structureCensus = census
+
         }
     },
 
     generateSpawnDirective: (spawn) => {
 
+        // TODO
+        // consider theoretical max creep size based on extensions
+        // consider practical max creep size based on population
+
         // defining variables
         let strategyCode = Math.floor(spawn.room.memory.strategyCode)
-        let census = spawn.room.memory.census
+        let census = spawn.room.memory.creepCensus
         let directive = []
 
         if (census.total == 0) {
@@ -105,7 +144,7 @@ module.exports = {
         // iterate over rooms
         for (var name in Game.rooms) {
             let room = Game.rooms[name]
-            let census = room.memory.census
+            let census = room.memory.creepCensus
 
             // find my containers
             let containers = room.find(FIND_STRUCTURES, {
