@@ -83,10 +83,30 @@ module.exports = {
 
         // defining variables
         let strategyCode = Math.floor(spawn.room.memory.strategyCode)
-        let census = spawn.room.memory.creepCensus
+        let structureCensus = spawn.room.memory.structureCensus
+        let creepCensus = spawn.room.memory.creepCensus
+        let spawnScalar = 0
         let directive = []
 
-        if (census.total == 0) {
+        // identify theoretical max creep spawn based on available extensions
+        let spawnTheoreticalCapacity = 300
+        let spawnPracticalCapacity = 300
+        spawnTheoreticalCapacity += structureCensus.extension.count * 50
+
+        // identify practical max creep size based on population
+        if(creepCensus.total > 10) {
+            spawnScalar = 1.0
+        } else {
+            spawnScalar = creepCensus.total / 10
+            console.log(spawnScalar)
+        }
+
+        spawnPracticalCapacity = spawnTheoreticalCapacity * spawnScalar
+        console.log(spawnPracticalCapacity)
+        spawnPracticalCapacity = spawnPracticalCapacity - (spawnPracticalCapacity % 50)
+        console.log(spawnPracticalCapacity)
+        
+        if (creepCensus.total == 0) {
             // if no creeps found
 
             // spawn default creep
@@ -105,12 +125,12 @@ module.exports = {
             // iterate over roles
             for (role in strategies[strategyCode].roles) {
 
-                // if role not in census, define as empty
-                if (census[role] == null) census[role] = { "count": 0, "density": 0 }
+                // if role not in creepCensus, define as empty
+                if (creepCensus[role] == null) creepCensus[role] = { "count": 0, "density": 0 }
 
-                // if census density is lower than strategy demands, spawn creep of said role
-                if (strategies[strategyCode].roles[role].density > census[role].density) {
-                    let currentDensityRatio = strategies[strategyCode].roles[role].density / census[role].density
+                // if creepCensus density is lower than strategy demands, spawn creep of said role
+                if (strategies[strategyCode].roles[role].density > creepCensus[role].density) {
+                    let currentDensityRatio = strategies[strategyCode].roles[role].density / creepCensus[role].density
                     if (currentDensityRatio > mostInNeedOfSpawn.densityRatio) {
                         mostInNeedOfSpawn = {
                             densityRatio: currentDensityRatio,
@@ -144,7 +164,7 @@ module.exports = {
         // iterate over rooms
         for (var name in Game.rooms) {
             let room = Game.rooms[name]
-            let census = room.memory.creepCensus
+            let creepCensus = room.memory.creepCensus
 
             // find my containers
             let containers = room.find(FIND_STRUCTURES, {
@@ -154,7 +174,7 @@ module.exports = {
             // determine room strategy code
             if (containers.length == 0) {
                 room.memory.strategyCode = 0
-            } else if (census.harvester.count == 0) {
+            } else if (creepCensus.harvester.count == 0) {
                 room.memory.strategyCode = 1.1
             } else {
                 room.memory.strategyCode = 1.2

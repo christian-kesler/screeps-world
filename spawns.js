@@ -6,7 +6,8 @@ module.exports = {
         for (var name in Game.spawns) {
 
             let spawn = Game.spawns[name]
-            console.log(`CENSUS: ${JSON.stringify(spawn.room.memory.creepCensus)}`)
+            console.log(`CREEP CENSUS: ${JSON.stringify(spawn.room.memory.creepCensus)}`)
+            console.log(`STRUCTURE CENSUS: ${JSON.stringify(spawn.room.memory.structureCensus)}`)
             console.log(`STRATEGY CODE: ${spawn.room.memory.strategyCode}`)
 
             let directive = generateSpawnDirective(spawn)
