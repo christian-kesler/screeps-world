@@ -156,11 +156,6 @@ module.exports = {
             }
 
             while (incomplete) {
-                // console.log(JSON.stringify({
-                //     creepBody: creepBody,
-                //     bodyEnergyCost: bodyEnergyCost,
-                //     incomplete: incomplete,
-                // }))
                 for (let i = 0; i < mostInNeedOfSpawn.body.maximize.length; i++) {
                     if (mostInNeedOfSpawn.body.maximize[i] == WORK) {
                         creepBody.push(mostInNeedOfSpawn.body.maximize[i])
