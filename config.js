@@ -4,15 +4,24 @@ module.exports = {
             roles: {
                 nurse: {
                     density: 0.4,
-                    body: [MOVE, MOVE, WORK, CARRY, CARRY],
+                    body: {
+                        maximize: [CARRY, MOVE],
+                        minimize: [WORK]
+                    },
                 },
                 upgrader: {
                     density: 0.3,
-                    body: [MOVE, MOVE, WORK, CARRY, CARRY],
+                    body: {
+                        maximize: [CARRY, MOVE],
+                        minimize: [WORK]
+                    },
                 },
                 engineer: {
                     density: 0.3,
-                    body: [MOVE, MOVE, WORK, CARRY, CARRY],
+                    body: {
+                        maximize: [CARRY, WORK],
+                        minimize: [MOVE]
+                    },
                 },
             },
             default_role: 'nurse'
@@ -20,20 +29,32 @@ module.exports = {
         1: {
             roles: {
                 harvester: {
-                    density: 0.4,
-                    body: [MOVE, WORK, WORK, CARRY],
+                    density: 0.2,
+                    body: {
+                        maximize: [WORK],
+                        minimize: [CARRY, MOVE]
+                    },
                 },
                 nurse: {
-                    density: 0.1,
-                    body: [MOVE, MOVE, WORK, CARRY, CARRY],
+                    density: 0.2,
+                    body: {
+                        maximize: [CARRY, MOVE],
+                        minimize: [WORK]
+                    },
                 },
                 upgrader: {
-                    density: 0.2,
-                    body: [MOVE, MOVE, WORK, CARRY, CARRY],
+                    density: 0.3,
+                    body: {
+                        maximize: [CARRY, MOVE],
+                        minimize: [WORK]
+                    },
                 },
                 engineer: {
                     density: 0.3,
-                    body: [MOVE, MOVE, WORK, CARRY, CARRY],
+                    body: {
+                        maximize: [CARRY, WORK],
+                        minimize: [MOVE]
+                    },
                 },
             },
             default_role: 'harvester'
