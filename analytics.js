@@ -115,7 +115,8 @@ module.exports = {
             // if creeps found
 
             let mostInNeedOfSpawn = {
-                densityRatio: 0
+                densityRatio: 0,
+                body: {}
             }
 
             // iterate over roles
