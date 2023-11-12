@@ -13,6 +13,7 @@ git remote set-url --add --push origin git@gitlab.com:christian.kesler/screeps-w
 
 #### Room Strategy Codes
 
-0 - No Containers, early game directives
-1 - Containers Present, mid game separation of duties
+0 - No Containers, creeps gather their own resources
+1.1 - Containers Present but no Harvesters
+1.2 - Containers Present with Harvesters, separation of duties
 
