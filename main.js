@@ -17,11 +17,10 @@ module.exports.loop = function () {
     executeAtInterval(conductRoomCreepCensus, [], 10)
     executeAtInterval(generateRoomStrategy, [], 16)
     executeAtInterval(conductRoomStructureCensus, [], 99)
+    executeAtInterval(plotRoadsBetweenStructures, [], 98)
 
     creeps.creepLoop()
     spawns.spawnLoop()
-
-    // plotRoadsBetweenStructures()
 
     console.log('    ^^^^    ')
 
