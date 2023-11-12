@@ -1,6 +1,8 @@
 const creeps = require('./creeps')
 const spawns = require('./spawns')
 
+const { plotRoadsBetweenStructures } = require('./rooms')
+
 const {
     generateRoomStrategy,
     conductRoomCreepCensus,
@@ -15,6 +17,7 @@ module.exports.loop = function () {
     executeAtInterval(conductRoomCreepCensus, [], 10)
     executeAtInterval(generateRoomStrategy, [], 16)
     executeAtInterval(conductRoomStructureCensus, [], 99)
+    executeAtInterval(plotRoadsBetweenStructures, [], 98)
 
     creeps.creepLoop()
     spawns.spawnLoop()

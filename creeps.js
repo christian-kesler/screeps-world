@@ -1,11 +1,40 @@
 const moveToOpt = {
-    visualizePathStyle: {
-        fill: 'transparent',
-        stroke: '#fff',
-        lineStyle: 'dashed',
-        strokeWidth: .15,
-        opacity: .5
-    }
+    engineer: {
+        visualizePathStyle: {
+            fill: 'transparent',
+            stroke: '#6699cc',
+            lineStyle: 'dashed',
+            strokeWidth: .15,
+            opacity: .5
+        }
+    },
+    harvester: {
+        visualizePathStyle: {
+            fill: 'transparent',
+            stroke: '#ed9121',
+            lineStyle: 'dashed',
+            strokeWidth: .15,
+            opacity: .5
+        }
+    },
+    nurse: {
+        visualizePathStyle: {
+            fill: 'transparent',
+            stroke: '#e6e6fa',
+            lineStyle: 'dashed',
+            strokeWidth: .15,
+            opacity: .5
+        }
+    },
+    upgrader: {
+        visualizePathStyle: {
+            fill: 'transparent',
+            stroke: '#8fbc8f',
+            lineStyle: 'dashed',
+            strokeWidth: .15,
+            opacity: .5
+        }
+    },
 }
 
 
@@ -61,7 +90,7 @@ const gatherEnergyFromRichestSource = (creep) => {
 
     // trying to perform harvest operations
     if (creep.harvest(Game.getObjectById(creep.memory.harvestTargetId)) == -9) {
-        creep.moveTo(Game.getObjectById(creep.memory.harvestTargetId), moveToOpt)
+        creep.moveTo(Game.getObjectById(creep.memory.harvestTargetId), moveToOpt[creep.memory.role])
     } else if (creep.harvest(Game.getObjectById(creep.memory.harvestTargetId)) == -7) {
         creep.memory.harvestTargetId = null
     }
@@ -78,7 +107,7 @@ const gatherEnergyFromClosestSource = (creep) => {
 
     // trying to perform harvest operations
     if (creep.harvest(Game.getObjectById(creep.memory.harvestTargetId)) == -9) {
-        creep.moveTo(Game.getObjectById(creep.memory.harvestTargetId), moveToOpt)
+        creep.moveTo(Game.getObjectById(creep.memory.harvestTargetId), moveToOpt[creep.memory.role])
     } else if (creep.harvest(Game.getObjectById(creep.memory.harvestTargetId)) == -7) {
         creep.memory.harvestTargetId = null
     }
@@ -105,7 +134,7 @@ const gatherResourcesFromContainers = (creep) => {
 
     // trying to perform harvest operations
     if (creep.withdraw(Game.getObjectById(creep.memory.harvestTargetId), RESOURCE_ENERGY) == -9) {
-        creep.moveTo(Game.getObjectById(creep.memory.harvestTargetId), moveToOpt)
+        creep.moveTo(Game.getObjectById(creep.memory.harvestTargetId), moveToOpt[creep.memory.role])
     } else if (creep.withdraw(Game.getObjectById(creep.memory.harvestTargetId), RESOURCE_ENERGY) == -7) {
         creep.memory.harvestTargetId = null
     }
@@ -194,7 +223,7 @@ const useResourcesByRole = {
             if (creep.transfer(Game.getObjectById(creep.memory.useTargetId), RESOURCE_ENERGY) == -9) {
 
                 // moveto target if actions failed due to distance
-                creep.moveTo(Game.getObjectById(creep.memory.useTargetId), moveToOpt)
+                creep.moveTo(Game.getObjectById(creep.memory.useTargetId), moveToOpt[creep.memory.role])
             }
         }
     },
@@ -236,14 +265,14 @@ const useResourcesByRole = {
                 if (creep.build(Game.getObjectById(creep.memory.useTargetId)) == -9) {
 
                     // moveto target if actions failed due to distance
-                    creep.moveTo(Game.getObjectById(creep.memory.useTargetId), moveToOpt)
+                    creep.moveTo(Game.getObjectById(creep.memory.useTargetId), moveToOpt[creep.memory.role])
                 }
             } else {
 
                 if (creep.repair(Game.getObjectById(creep.memory.useTargetId)) == -9) {
 
                     // moveto target if actions failed due to distance
-                    creep.moveTo(Game.getObjectById(creep.memory.useTargetId), moveToOpt)
+                    creep.moveTo(Game.getObjectById(creep.memory.useTargetId), moveToOpt[creep.memory.role])
                 }
 
                 if (
@@ -274,7 +303,7 @@ const useResourcesByRole = {
     upgrader: (creep) => {
         // deliver energy to controller
         if (creep.upgradeController(creep.room.controller) == -9) {
-            creep.moveTo(creep.room.controller, moveToOpt)
+            creep.moveTo(creep.room.controller, moveToOpt[creep.memory.role])
         }
     },
     harvester: (creep) => {
@@ -331,7 +360,7 @@ const useResourcesByRole = {
             if (creep.transfer(Game.getObjectById(creep.memory.useTargetId), RESOURCE_ENERGY) == -9) {
 
                 // moveto target if actions failed due to distance
-                creep.moveTo(Game.getObjectById(creep.memory.useTargetId), moveToOpt)
+                creep.moveTo(Game.getObjectById(creep.memory.useTargetId), moveToOpt[creep.memory.role])
             }
         }
 

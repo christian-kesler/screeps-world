@@ -23,6 +23,13 @@ module.exports = {
                         minimize: [MOVE]
                     },
                 },
+                harvester: {
+                    density: 0,
+                    body: {
+                        maximize: [WORK],
+                        minimize: [CARRY, MOVE]
+                    },
+                },
             },
             default_role: 'nurse'
         },
