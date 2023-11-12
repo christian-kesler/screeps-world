@@ -142,66 +142,70 @@ module.exports = {
             let bodyEnergyCost = 0
             let incomplete = true
 
-            for (let i = 0; i < mostInNeedOfSpawn.body.minimize.length; i++) {
-                if (mostInNeedOfSpawn.body.minimize[i] == WORK) {
-                    creepBody.push(mostInNeedOfSpawn.body.minimize[i])
-                    bodyEnergyCost += 100
-                } else if (
-                    mostInNeedOfSpawn.body.minimize[i] == MOVE
-                    ||
-                    mostInNeedOfSpawn.body.minimize[i] == CARRY
-                ) {
-                    creepBody.push(mostInNeedOfSpawn.body.minimize[i])
-                    bodyEnergyCost += 50
-                }
-            }
-
-            while (incomplete) {
-                for (let i = 0; i < mostInNeedOfSpawn.body.maximize.length; i++) {
-                    if (mostInNeedOfSpawn.body.maximize[i] == WORK) {
-                        creepBody.push(mostInNeedOfSpawn.body.maximize[i])
+            if (mostInNeedOfSpawn.densityRatio != 0) {
+                for (let i = 0; i < mostInNeedOfSpawn.body.minimize.length; i++) {
+                    if (mostInNeedOfSpawn.body.minimize[i] == WORK) {
+                        creepBody.push(mostInNeedOfSpawn.body.minimize[i])
                         bodyEnergyCost += 100
                     } else if (
-                        mostInNeedOfSpawn.body.maximize[i] == MOVE
+                        mostInNeedOfSpawn.body.minimize[i] == MOVE
                         ||
-                        mostInNeedOfSpawn.body.maximize[i] == CARRY
+                        mostInNeedOfSpawn.body.minimize[i] == CARRY
                     ) {
-                        creepBody.push(mostInNeedOfSpawn.body.maximize[i])
+                        creepBody.push(mostInNeedOfSpawn.body.minimize[i])
                         bodyEnergyCost += 50
                     }
+                }
 
-                    if (bodyEnergyCost > spawnPracticalCapacity) {
-
+                while (incomplete) {
+                    for (let i = 0; i < mostInNeedOfSpawn.body.maximize.length; i++) {
                         if (mostInNeedOfSpawn.body.maximize[i] == WORK) {
-                            creepBody.pop()
-                            bodyEnergyCost -= 100
-                            incomplete = false
+                            creepBody.push(mostInNeedOfSpawn.body.maximize[i])
+                            bodyEnergyCost += 100
                         } else if (
                             mostInNeedOfSpawn.body.maximize[i] == MOVE
                             ||
                             mostInNeedOfSpawn.body.maximize[i] == CARRY
                         ) {
-                            creepBody.pop()
-                            bodyEnergyCost -= 50
-                            incomplete = false
+                            creepBody.push(mostInNeedOfSpawn.body.maximize[i])
+                            bodyEnergyCost += 50
                         }
 
+                        if (bodyEnergyCost > spawnPracticalCapacity) {
+
+                            if (mostInNeedOfSpawn.body.maximize[i] == WORK) {
+                                creepBody.pop()
+                                bodyEnergyCost -= 100
+                                incomplete = false
+                            } else if (
+                                mostInNeedOfSpawn.body.maximize[i] == MOVE
+                                ||
+                                mostInNeedOfSpawn.body.maximize[i] == CARRY
+                            ) {
+                                creepBody.pop()
+                                bodyEnergyCost -= 50
+                                incomplete = false
+                            }
+
+                        }
                     }
                 }
-            }
 
-            directive = [{
-                "action": "spawn_creep",
-                "role": mostInNeedOfSpawn.role,
-                "body": creepBody,
-            }]
+                directive = [{
+                    "action": "spawn_creep",
+                    "role": mostInNeedOfSpawn.role,
+                    "body": creepBody,
+                }]
+            }
 
             // if no other directive priorities, spawn default
             if (directive.length == 0) {
-                directive = [{
-                    "action": "spawn_creep",
-                    "role": strategies[strategyCode].default_role
-                }]
+                directive = [
+                    //     {
+                    //     "action": "spawn_creep",
+                    //     "role": strategies[strategyCode].default_role
+                    // }
+                ]
             }
 
             return directive
