@@ -1,7 +1,10 @@
 const creeps = require('./creeps')
 const spawns = require('./spawns')
 
-const { plotRoadsBetweenStructures } = require('./rooms')
+const {
+    plotRoadsFromSpawnsToSources,
+    plotRoadsFromSourcesToController
+} = require('./rooms')
 
 const {
     generateRoomStrategy,
@@ -14,10 +17,11 @@ module.exports.loop = function () {
 
     console.log('    vvvv    ')
 
-    executeAtInterval(conductRoomCreepCensus, [], 10)
-    executeAtInterval(generateRoomStrategy, [], 16)
-    executeAtInterval(conductRoomStructureCensus, [], 99)
-    executeAtInterval(plotRoadsBetweenStructures, [], 98)
+    executeAtInterval(conductRoomCreepCensus, [], 9)
+    executeAtInterval(generateRoomStrategy, [], 23)
+    executeAtInterval(conductRoomStructureCensus, [], 100)
+    executeAtInterval(plotRoadsFromSpawnsToSources, [], 101)
+    executeAtInterval(plotRoadsFromSourcesToController, [], 103)
 
     creeps.creepLoop()
     spawns.spawnLoop()
