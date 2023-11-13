@@ -47,6 +47,26 @@ module.exports = {
             }
 
         }
-    }
+    },
+    plotExtentionsFromSpawns: () => {
+        // loop over all rooms
+        for (var roomName in Game.rooms) {
+            const room = Game.rooms[roomName]
 
+            let spawns = room.find(FIND_MY_STRUCTURES, {
+                filter: { structureType: STRUCTURE_SPAWN }
+            });
+
+            for (var spawnName in spawns) {
+                const spawn = spawns[spawnName]
+
+                for (let i = 1; i < 5; i++) {
+                    room.createConstructionSite(spawn.pos.x + i, spawn.pos.y + i, STRUCTURE_EXTENSION);
+                    room.createConstructionSite(spawn.pos.x - i, spawn.pos.y + i, STRUCTURE_EXTENSION);
+                    room.createConstructionSite(spawn.pos.x + i, spawn.pos.y - i, STRUCTURE_EXTENSION);
+                    room.createConstructionSite(spawn.pos.x - i, spawn.pos.y - i, STRUCTURE_EXTENSION);
+                }
+            }
+        }
+    }
 }
