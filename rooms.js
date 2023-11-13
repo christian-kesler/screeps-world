@@ -1,5 +1,5 @@
 module.exports = {
-    plotRoadsBetweenStructures: () => {
+    plotRoadsFromSpawnsToSources: () => {
         // loop over all rooms
         for (var roomName in Game.rooms) {
             const room = Game.rooms[roomName]
@@ -22,11 +22,31 @@ module.exports = {
 
                     const directions = spawn.pos.findPathTo(source, { ignoreCreeps: true, ignoreRoads: true })
 
-                    for (let i = 0; i < directions.length; i++) {
+                    for (let i = 0; i < directions.length - 1; i++) {
                         room.createConstructionSite(directions[i].x, directions[i].y, STRUCTURE_ROAD);
                     }
                 }
             }
         }
+    },
+    plotRoadsFromSourcesToController: () => {
+        // loop over all rooms
+        for (var roomName in Game.rooms) {
+            const room = Game.rooms[roomName]
+
+            let sources = room.find(FIND_SOURCES_ACTIVE)
+
+            for (var sourceName in sources) {
+                const source = sources[sourceName]
+
+                const directions = source.pos.findPathTo(room.controller, { ignoreCreeps: true, ignoreRoads: true })
+
+                for (let i = 0; i < directions.length - 1; i++) {
+                    room.createConstructionSite(directions[i].x, directions[i].y, STRUCTURE_ROAD);
+                }
+            }
+
+        }
     }
+
 }
