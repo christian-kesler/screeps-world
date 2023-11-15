@@ -60,7 +60,7 @@ module.exports = {
             for (var spawnName in spawns) {
                 const spawn = spawns[spawnName]
 
-                for (let i = 1; i < 5; i++) {
+                for (let i = 1; i <= 8; i++) {
                     room.createConstructionSite(spawn.pos.x + i, spawn.pos.y + i, STRUCTURE_EXTENSION);
                     room.createConstructionSite(spawn.pos.x - i, spawn.pos.y + i, STRUCTURE_EXTENSION);
                     room.createConstructionSite(spawn.pos.x + i, spawn.pos.y - i, STRUCTURE_EXTENSION);
