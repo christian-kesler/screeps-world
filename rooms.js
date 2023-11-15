@@ -68,5 +68,40 @@ module.exports = {
                 }
             }
         }
+    },
+    plotContainersFromSources: () => {
+        // loop over all rooms
+        for (var roomName in Game.rooms) {
+            const room = Game.rooms[roomName]
+
+            let sources = room.find(FIND_SOURCES)
+
+            for (var sourceName in sources) {
+                const source = sources[sourceName]
+
+                // let plotted = 0
+                for (let x = -1; x <= 1; x++) {
+                    for (let y = -1; y <= 1; y++) {
+
+                        source.pos.x = source.pos.x + x
+                        source.pos.y = source.pos.y + y
+
+                        const structures = source.pos.lookFor(LOOK_STRUCTURES)
+
+                        // iterate over structures and count completed containers as plotted
+
+                        // if (plotted < 2) {
+                        //     if (room.createConstructionSite(source.pos.x + x, source.pos.y + y, STRUCTURE_CONTAINER) == 0) {
+                        //         plotted++
+                        //     }
+                        // }
+
+                        source.pos.x = source.pos.x - x
+                        source.pos.y = source.pos.y - y
+                    }
+                }
+            }
+        }
     }
+
 }

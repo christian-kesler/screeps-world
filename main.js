@@ -4,7 +4,8 @@ const spawns = require('./spawns')
 const {
     plotRoadsFromSpawnsToSources,
     plotRoadsFromSourcesToController,
-    plotExtentionsFromSpawns
+    plotExtentionsFromSpawns,
+    plotContainersFromSources
 } = require('./rooms')
 
 const {
@@ -17,6 +18,8 @@ const { executeAtInterval } = require('./utils')
 module.exports.loop = function () {
 
     console.log('    vvvv    ')
+
+    // plotContainersFromSources()
 
     executeAtInterval(conductRoomCreepCensus, [], 9)
     executeAtInterval(generateRoomStrategy, [], 23)
