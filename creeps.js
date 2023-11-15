@@ -402,6 +402,8 @@ module.exports = {
             } catch (err) {
                 console.log(`ERROR: ${err}`)
                 console.log(`TRIGGERED BY CREEP with NAME: ${creep.name} and ROLE: ${creep.memory.role}`)
+                creep.memory.useTargetId = null
+                creep.memory.harvestTargetId = null
             }
 
             // catching unexpected directives
