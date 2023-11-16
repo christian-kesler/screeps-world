@@ -4,7 +4,8 @@ const spawns = require('./spawns')
 const {
     plotRoadsFromSpawnsToSources,
     plotRoadsFromSourcesToController,
-    plotExtentionsFromSpawns
+    plotExtentionsFromSpawns,
+    plotContainersFromSources
 } = require('./rooms')
 
 const {
@@ -24,6 +25,7 @@ module.exports.loop = function () {
     executeAtInterval(plotRoadsFromSpawnsToSources, [], 101)
     executeAtInterval(plotRoadsFromSourcesToController, [], 103)
     executeAtInterval(plotExtentionsFromSpawns, [], 107)
+    executeAtInterval(plotContainersFromSources, [], 113)
 
     creeps.creepLoop()
     spawns.spawnLoop()
