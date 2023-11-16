@@ -19,14 +19,13 @@ module.exports.loop = function () {
 
     console.log('    vvvv    ')
 
-    // plotContainersFromSources()
-
     executeAtInterval(conductRoomCreepCensus, [], 9)
     executeAtInterval(generateRoomStrategy, [], 23)
     executeAtInterval(conductRoomStructureCensus, [], 100)
     executeAtInterval(plotRoadsFromSpawnsToSources, [], 101)
     executeAtInterval(plotRoadsFromSourcesToController, [], 103)
     executeAtInterval(plotExtentionsFromSpawns, [], 107)
+    executeAtInterval(plotContainersFromSources, [], 113)
 
     creeps.creepLoop()
     spawns.spawnLoop()
