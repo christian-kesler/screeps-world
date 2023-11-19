@@ -371,20 +371,22 @@ const useResourcesByRole = {
 module.exports = {
     creepLoop: () => {
 
-        for (var name in Game.creeps) {
+        const creeps = Object.values(Game.creeps);
+
+        for (let i = 0; i < creeps.length; i++) {
 
             // creep shorthand
-            let creep = Game.creeps[name]
+            let creep = creeps[i]
 
             // assessing store capacity and setting directive
             if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
                 creep.memory.directive = 'harvestResources'
-                creep.memory.useTargetTime = Game.time
+                // creep.memory.useTargetTime = Game.time
                 creep.memory.useTargetId = null
 
             } else if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                 creep.memory.directive = 'useResources'
-                creep.memory.harvestTargetTime = Game.time
+                // creep.memory.harvestTargetTime = Game.time
                 creep.memory.harvestTargetId = null
             }
 
